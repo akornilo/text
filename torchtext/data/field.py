@@ -61,7 +61,9 @@ class Field(object):
             eos_token=None, fix_length=None, tensor_type=torch.LongTensor,
             preprocessing=None, postprocessing=None, lower=False,
             tokenize=(lambda s: s.split()), include_lengths=False,
-            batch_first=False, pad_token="<pad>"):
+            batch_first=False, pad_token="<pad>",not_tensor=False):
+	
+        self.not_tensor = not_tensor
         self.sequential = sequential
         self.use_vocab = use_vocab
         self.init_token = init_token
@@ -103,6 +105,7 @@ class Field(object):
         `self.include_lengths` is `True`, else just returns the padded list.
         """
         minibatch = list(minibatch)
+	
         if not self.sequential:
             return minibatch
         if self.fix_length is None:
@@ -167,6 +170,13 @@ class Field(object):
             train: Whether the batch is for a training set. If False, the
                 Variable will be created with volatile=True. Default: True.
         """
+
+        if self.not_tensor:
+            if self.include_lengths:
+                return arr, len(arr)
+            else:
+                return arr	
+
         if isinstance(arr, tuple):
             arr, lengths = arr
         if self.use_vocab:
